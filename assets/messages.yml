@@ -1,1 +1,10 @@
-soon: soon
+messages:
+
+  main: 
+    prefix: "&8&l« &a&lLand&2&lSk &8&l»"
+    noPermission: "&cVous n'avez pas la permission d'utiliser cette commande."
+
+
+  system:
+    newUpdateAvailable: "&7Une nouvelle mise à jour est &adisponible&7. Page Spigot: &e"
+    noUpdateAvailable: "&7Aucune mise à jour n'est disponible."

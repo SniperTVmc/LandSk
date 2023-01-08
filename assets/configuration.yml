@@ -1,1 +1,4 @@
-soon: soon
+configuration:
+
+  main: 1.0.0
+  checkUpdates: true

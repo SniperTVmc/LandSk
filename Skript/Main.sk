@@ -35,37 +35,48 @@ options:
 # ################################ #
 
 
+## Génération des fichiers de configuration par défaut.
+
+
 on load:
+    download file from "https://raw.githubusercontent.com/SniperTVmc/LandSk/Main/assets/configuration.yml" to "{@STORAGE-FOLDER}/cache/configuration.yml"
+    download file from "https://raw.githubusercontent.com/SniperTVmc/LandSk/Main/assets/messages.yml" to "{@STORAGE-FOLDER}/cache/messages.yml"
+
     if "{@STORAGE-FOLDER}/configuration.yml" is not available:
-        create "{@STORAGE-FOLDER}/configuration.yml"
+        copy "{@STORAGE-FOLDER}/cache/configuration.yml" to "{@STORAGE-FOLDER}/configuration.yml"
+    else:
+        importConfigurationValues()
 
     if "{@STORAGE-FOLDER}/messages.yml" is not available:
-        create "{@STORAGE-FOLDER}/messages.yml"
+        copy "{@STORAGE-FOLDER}/cache/messages.yml" to "{@STORAGE-FOLDER}/messages.yml"
+    else:
+        importMessagesValues()
+    
+    loadConfiguration()
 
-    importConfigurationValues()
-    importMessagesValues()
 
-
-## Génération des valeurs dans le fichier de configuration.
+## Génération des valeurs dans les fichiers de configuration.
 
 
 function importConfigurationValues():
+    importFileValue("configuration.main.version", "configuration.yml")
+    importFileValue("configuration.main.checkUpdates", "configuration.yml")
 
 
 function importMessagesValues():
-    set yaml value "messages.main.prefix" from file "{@STORAGE-FOLDER}/messages.yml" to "&8&l« &a&lLand&2&lSk &8&l»"
-    set yaml value "messages.main.noPermission" from file "{@STORAGE-FOLDER}/messages.yml" to "&cVous n'avez pas la permission d'utiliser cette commande."
+    importFileValue("messages.main.prefix", "messages.yml")
+    importFileValue("messages.main.noPermission", "messages.yml")
+    
+    importFileValue("messages.system.newUpdateAvailable", "messages.yml")
+    importFileValue("messages.system.noUpdateAvailable", "messages.yml")
 
-    set yaml value "messages.system.newUpdateAvailable" from file "{@STORAGE-FOLDER}/messages.yml" to "&7Une nouvelle mise à jour est &adisponible&7. Page Spigot: &e"
-    set yaml value "messages.system.noUpdateAvailable" from file "{@STORAGE-FOLDER}/messages.yml" to "&7Aucune mise à jour n'est disponible."
+
+function importFileValue(PathValue: text, File: text):
+    if yaml {_PathValue} from "{@STORAGE-FOLDER}/%{_File}%" doesn't have value:
+        set yaml value {_PathValue} from file "{@STORAGE-FOLDER}/%{_File}%" to (yaml value {_PathValue} from file "{@STORAGE-FOLDER}/cache/%{_File}%")
 
 
-function importFileValue(PathValue: text):
-    if yaml path {_PathValue} from "config" has a value:
-        set yaml value "configuration.main.version" from file "{@STORAGE-FOLDER}/configuration.yml" to {@VERSION}
-
-    set yaml value "configuration.main.checkUpdates" from file "{@STORAGE-FOLDER}/configuration.yml" to true
-
+## Récupération des valeurs dans une variable.
 
 
 function loadConfiguration():
@@ -78,10 +89,19 @@ function loadConfiguration():
     set {landsk.noUpdateAvailable} to yaml value "messages.system.noUpdateAvailable" from file "{@STORAGE-FOLDER}/messages.yml"
 
 
+## Vérification d'une mise à jour si activé.
+
+
 on join:
     if {landsk.checkUpdates} is true:
-        set {_latestVersion} to text from "https://api.spigotmc.org/legacy/update.php?resource=<RESSOURCE_ID_SOON>"
+
+        set {_input} to text from "https://api.github.com/repos/SniperTVmc/LandSk/releases/latest"
+
+        copy json from {_input} to {_output::*}
+
+        set {_latestVersion} to {_output::tag_name}
+
         if {@VERSION} is not {_latestVersion}:
-            send "%{landsk.prefix}% %{landsk.newUpdateAvailable}% https://www.spigotmc.org/resources/<RESSOURCE_ID_SOON>/" to event-player
+            send "%{landsk.prefix}% %{landsk.newUpdateAvailable}% https://github.com/SniperTVmc/LandSk/releases/latest" to event-player
         else:
             send "%{landsk.prefix}% %{landsk.noUpdateAvailable}%" to event-player
